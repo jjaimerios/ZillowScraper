@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Create needed directory structure
+echo "Creating Needed Directories"
+
+# Data directories
+mkdir Lake
+chmod 750 Lake
+mkdir Work
+chmod 750 Work
+mkdir Ingest
+chmod 750 Ingest
+
+# Code directories
+mkdir bin
+chmod 750 bin
+mkdir etc
+chmod 750 etc
+mkdir log
+chmod 750 log
+
+exit 0

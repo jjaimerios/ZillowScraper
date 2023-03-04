@@ -1,0 +1,85 @@
+#!/usr/bin/python3
+
+# This script will parse zillow property search results
+# It will write the raw html to a "Lake" directory
+
+# Import regex library
+import re
+
+# To pause between iterations
+import time
+
+# Import web scraping libraries
+from bs4 import BeautifulSoup
+import requests
+from bs4 import BeautifulSoup as soup
+
+# Import properties library and set property file variable
+import configparser
+config = configparser.RawConfigParser()
+config.read('../etc/config.props')
+
+# Function to parse Zillow web page
+def parsePage(cityName,pageNum):
+
+    # Set up referer header info so I don't look like a bot
+    refererPage = 'https://www.zillow.com/search/GetSearchPageState.htm?searchQueryState=%7B%22pagination'
+    #refererPage = 'https://www.zillow.com/' + cityName + '/?searchQueryState=%7B%22pagination'
+    #refererPage = 'https://www.zillow.com/' + cityName + '/' + str(pageNum) + '_p/?searchQueryState=%7B%22pagination'
+
+    header = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36', 
+            'referer': refererPage }
+
+    # Build Zillow url to scrape
+    url = 'https://www.zillow.com/homes/' + cityName + '/%d_p' % (pageNum)
+    #print("url= " + url)
+
+    # Scrape Zillow results page
+    html = requests.get(url=url,headers=header)
+    html.status_code
+    #print("stat code: " + str(html.status_code))
+    bsobjx = soup(html.content,'lxml') #bsobj - Beautiful Soup Object
+
+    # Build output file name - with city name and page number in file name
+    #cleanCityName = cityName.replace(',', '')
+    cleanCityName = re.sub(',|-', '', cityName)
+    outfile = '../Lake/output.' + cleanCityName + '_' + str(pageNum) + '.html'
+    #print("outfile: " + outfile)
+
+    # Write raw scraped html to physical file
+    with open(outfile, "w", encoding = 'utf-8') as file:
+        # prettify the soup object and convert it into a string
+        file.write(str(bsobjx.prettify()))
+
+    return bsobjx
+
+# Main function
+def main():
+
+    # Get list of cities to search from property file
+    cities = config.get('Scraper', 'cities')
+
+    # Loop through each city to get property search results
+    for baseCity in cities.split(";"):
+        print(baseCity)
+
+        # Get page 1 results
+        pageNumber = 1
+        bsobj = parsePage(baseCity, pageNumber)
+
+        # Get number of properties from first page (each page contains 40 results)
+        divxtag2 = bsobj.find('div', class_='total-text').string
+        #print(divxtag2)
+
+        # Divide number of properties by 40 to get number of pages to read for given city
+        answer = int(divxtag2) / 40
+        #print(answer)
+
+        # Parse every page of property results for given city
+        for x in range(1, int(answer)):
+            time.sleep(2)
+            parsePage(baseCity, x+1)
+
+# Call main
+if __name__ == "__main__":
+    main()

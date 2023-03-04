@@ -1,0 +1,3 @@
+[Scraper]
+cities=Huntsville,-AL_rb;colorado-springs_rb;Green-Bay,-WI_rb;Boulder,-CO_rb;San-Jose,-CA_rb
+citiesOrig=Huntsville,-AL_rb;Colorado-Springs,-CO_rb;Green-Bay,-WI_rb;Boulder,-CO_rb;San-Jose,-CA_rb
